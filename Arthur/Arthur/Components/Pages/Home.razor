@@ -1,0 +1,47 @@
+﻿@page "/"
+
+@inject IDrawService DrawService
+
+<PageTitle>Arthur</PageTitle>
+
+<div class="px-4 py-5 my-5 text-center">
+    <img class="d-block mx-auto mb-4" src="images/arthur-logo.png" alt="" width="100" height="100">
+    <h1 class="display-5 fw-bold">Welcome to Arthur lotto</h1>
+</div>
+
+@if (drawsResponse != null)
+{
+    <table class="table table-striped table-sm" >
+        <thead>
+            <tr>
+                <th scope="col">Date</th>
+                <th scope="col" colspan="6">Numbers</th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+    @foreach (var item in drawsResponse)
+    {
+                <tr>
+                    <td scope="row" class="text-center">@item.DrawDate</td>
+                    <td>@item.Number1</td>
+                    <td>@item.Number2</td>
+                    <td>@item.Number3</td>
+                    <td>@item.Number4</td>
+                    <td>@item.Number5</td>
+                    <td>@item.Number6</td>
+                    <td><a href="/detail/@item.Id" class="link-success">More</a></td>
+                </tr>
+    }
+        </tbody>
+    </table>
+}
+
+@code {
+
+    private List<Draw> drawsResponse = new();
+
+    protected override async Task OnInitializedAsync() {
+        drawsResponse = await DrawService.GetDraws();
+    }
+}

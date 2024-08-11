@@ -1,0 +1,209 @@
+﻿@page "/detail/{id}"
+@using System.Globalization
+@using System.Text.Json
+@rendermode InteractiveServer
+@inject IDrawService DrawService
+@inject IRandomNumberService RandomNumberService
+
+<PageTitle>Draw Detail</PageTitle>
+
+<a href="/" class="link-primary">Back</a>
+
+@if (draw == null)
+{
+    <p><em>No draw with id "@Id"</em></p>
+}
+
+@if (draw != null)
+{
+    <h1>Draw detail for @formattedDate</h1>
+    <div class="my-3">
+        <h5>The Top Prize for this week is estimated</h5>
+        <h1>@formattedTopPrize</h1>
+    </div>
+
+    <div class="container">
+        <div class="row justify-content-md-center">
+            <div class="col col-xl-6">
+                <div class="my-3">
+                    <h5>Here are this weeks numbers</h5>
+                    <div class="d-flex gap-3">
+                        <div class="ball slide-in" style="border-color:red"><p class="m-0 roll">@draw.Number1</p></div>
+                        <div class="ball slide-in" style="border-color:orangered"><p class="m-0 roll">@draw.Number2</p></div>
+                        <div class="ball slide-in" style="border-color:yellow"><p class="m-0 roll">@draw.Number3</p></div>
+                        <div class="ball slide-in" style="border-color:lime"><p class="m-0 roll">@draw.Number4</p></div>
+                        <div class="ball slide-in" style="border-color:cornflowerblue"><p class="m-0 roll">@draw.Number5</p></div>
+                        <div class="ball slide-in" style="border-color:blue"><p class="m-0 roll">@draw.Number6</p></div>
+                    </div>
+                </div>
+    
+                <div class="my-3">
+                    <h5>And here is the bonus ball</h5>
+                    <div class="ball square" style="border-color:blueviolet">
+                        <p class="m-0">@draw.BonusBall</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col col-xl-6">
+                @if(myNumbers is null)
+                {
+                    <h5>Check to see if you were a winner!</h5>
+                    <button class="btn btn-primary" @onclick="handlePickMyNumbers">Click me</button>
+                }
+
+                @if (myNumbers is not null)
+                {
+                    @if (isWinner is true)
+                    {
+                        <h1 data-id-won>Congratulations, you are a winner!</h1>
+                    }
+                    @if (isWinner is false)
+                    {
+                        <h1 data-id-loss>Sorry. Better luck next time</h1>
+                    }
+                    
+                    <div>
+                        <h5>Here are your numbers</h5>
+                        <div class="d-flex gap-3">
+                            @foreach (var number in myNumbers)
+                            {
+                                <div class="ball"  style="border-color:coral" >
+                                    <p class="m-0">@number</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="my-3">
+                        <h5>And here is your bonus ball</h5>
+                        <div class="ball square" style="border-color:coral">
+                            <p class="m-0">@myBonusBall</p>
+                        </div>
+                    </div>
+                    }
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .ball {
+        width: 50px;
+        height: 50px;
+        padding: 4px;
+        border: 2px solid rebeccapurple;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .square {
+        border-radius: 3px;
+    }
+
+    .slide-in {
+        animation: moveLeft 3s linear;
+    }
+
+    .roll {
+        animation: roll 3s linear;
+    }
+
+    @@keyframes moveLeft {
+        0% {
+            transform: translateX(-500px);
+        }
+
+        50% {
+            transform: translateX(100px);
+        }
+
+        100% {
+            transform: translateX(0px);
+        }
+    }
+
+    @@keyframes roll {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        50% {
+            transform: rotate(360deg);
+        }
+
+        100% {
+            transform: rotate(0deg);
+        }
+    }
+
+</style>
+
+
+@code {
+    [Parameter]
+    public string? Id { get; set; }
+    private Draw? draw;
+    private string formattedDate = string.Empty;
+    private string formattedTopPrize = string.Empty;
+    public List<int>? formattedWinningNumbers;
+    public int? formattedBonusNumber;
+    public List<int>? myNumbers;
+    private int? myBonusBall;
+    public bool isWinner = false;
+
+    protected override void OnInitialized()
+    {
+
+        draw = DrawService.GetDrawById(Id!);
+        
+        if(draw is not null)
+        {
+            formattedDate = draw.DrawDate.ToString("dddd dd MMMM", new CultureInfo("en-GB"));
+            formattedTopPrize = draw.TopPrize.ToString("C0", CultureInfo.CurrentCulture);
+            formattedWinningNumbers = [];
+
+            List<string> numbersAsString = new List<string>{ draw.Number1, draw.Number2, draw.Number3, draw.Number4, draw.Number5, draw.Number6 };
+            foreach (string str in numbersAsString)
+            {
+                if (int.TryParse(str, out int result))
+                {
+                    formattedWinningNumbers.Add(result);
+                }
+            }
+
+            if (int.TryParse(draw.BonusBall, out int bbResult))
+            {
+                formattedBonusNumber = bbResult;
+            }
+        }
+        
+    }
+
+    private void handlePickMyNumbers()
+    {
+        NumberPicker();
+        isWinner = CheckIfWinner();
+    }
+
+    private bool CheckIfWinner()
+    {
+        List<int> sortedList1 = myNumbers!.OrderBy(n => n).ToList();
+        List<int> sortedList2 = formattedWinningNumbers!.OrderBy(n => n).ToList();
+        bool mainNumbersCheck = sortedList1.SequenceEqual(sortedList2);
+
+        bool bonusNumberCheck = myBonusBall == formattedBonusNumber;
+
+        return mainNumbersCheck && bonusNumberCheck;
+    }
+
+    private void NumberPicker()
+    {
+        var numberList = RandomNumberService.PickNumbers();
+
+        myBonusBall = numberList[0];
+        myNumbers = numberList.Skip(1).ToList();
+    }
+}
