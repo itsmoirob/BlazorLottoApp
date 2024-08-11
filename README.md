@@ -21,7 +21,8 @@ I opted for this option as the requirement for using Maui was to only use native
 
 1. **Clone the repository**:
 
-```git clone https://github.com/itsmoirob/BlazorLottoApp.git
+```
+git clone https://github.com/itsmoirob/BlazorLottoApp.git
 cd BlazorLottoApp
 ```
 
