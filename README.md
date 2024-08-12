@@ -4,7 +4,7 @@ This is a Blazor application for a lottery system.
 
 ## Technology Stack
 This was written using .net 8 and Blazor Server.
-I opted for this option as the requirement for using Maui was to only use native APIs and controls. Therefore I went with a .net web solution and used Razor pages.
+I opted for this option as the requirement for using Maui was to only use native APIs and controls. Therefore I went with a .net web solution and used Blazor pages.
 
 ## Features
 
